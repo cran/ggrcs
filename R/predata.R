@@ -3,8 +3,9 @@
 #'@param fit Model function required for prediction.
 #'@param variables variable name.
 #'@param y the value of the variable.
+#'@param group Variables that need to be grouped.
 #'@return Data required for plotting.
 #'
-predata <- function(fit,variables,y){
+predata <- function(fit,variables,y,group=NULL){
   UseMethod("predata")
 }

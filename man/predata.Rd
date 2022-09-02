@@ -4,7 +4,7 @@
 \alias{predata}
 \title{predata}
 \usage{
-predata(fit, variables, y)
+predata(fit, variables, y, group = NULL)
 }
 \arguments{
 \item{fit}{Model function required for prediction.}
@@ -12,6 +12,8 @@ predata(fit, variables, y)
 \item{variables}{variable name.}
 
 \item{y}{the value of the variable.}
+
+\item{group}{Variables that need to be grouped.}
 }
 \value{
 Data required for plotting.

@@ -12,7 +12,7 @@
 #'@importFrom "rms" "Predict"
 #'@importFrom "ggplot2" "aes" "element_blank" "geom_histogram" "geom_line" "geom_ribbon" "ggplot" "labs" "scale_y_continuous"
 #'@importFrom "scales" "rescale"
-#'
+#'@importFrom "stats" "anova"
 #'
 #'@return a picture
 
@@ -25,20 +25,26 @@
 #'dt<-smoke
 #'dd<-datadist(dt)
 #'options(datadist='dd')
-#'fit <- cph(Surv(time,status==1) ~ rcs(age,4), x=TRUE, y=TRUE,data=dt)
+#'fit<- cph(Surv(time,status==1) ~ rcs(age,4)+gender, x=TRUE, y=TRUE,data=dt)
+#'###single group
 #'ggrcs(data=dt,fit=fit,x="age")
+#'##two groups
+#'ggrcs(data=dt,fit=fit,x="age",group="gender")
 
 
 utils::globalVariables(c('theme_bw',
                          'theme',
-                         'sec_axis'
+                         'sec_axis',
+                         'scale_fill_manual',
+                         'scale_colour_manual',
+                         'annotate'
                          ))
 
 
-ggrcs<-function(data,fit,x,histlimit=NULL,histbinwidth=NULL,histcol=NULL,
+ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=NULL,histcol=NULL,
                 linetype=NULL,linesize=NULL,ribalpha=NULL,ribcol=NULL,xlab=NULL,ylab=NULL,
-                subtitle=NULL,caption=NULL,leftaxislimit=NULL,lift=TRUE,
-                scale_y_continuous=NULL,title=NULL,...){
+                leftaxislimit=NULL,lift=TRUE,Pvalue=NULL,P.Nonlinear=FALSE,liftname=NULL,
+                title=NULL,xP.Nonlinear=NULL,yP.Nonlinear=NULL,...){
   ..density..<-NULL;yhat<-NULL;lower<-NULL;upper<-NULL
   if (missing(data)) {stop("data is miss.")}
   if (missing(fit)) {stop("fit is miss.")}
@@ -47,43 +53,120 @@ ggrcs<-function(data,fit,x,histlimit=NULL,histbinwidth=NULL,histcol=NULL,
     stop("The data argument needs to be a data frame (no quote).")
   }
   call <- match.call()
-  fit <- fit;assign("fit", fit)
-  dt<-data
-  x1<-x
-  x<-dt[,x]
-  Pre0 <-predata(fit=fit,variables=x1,y=x)
-  Pre0<-as.data.frame(Pre0)
-  ####data set
-  d<-density(x)
-  dmin<-as.numeric(min(d[["y"]]))##density
-  dmax<-as.numeric(max(d[["y"]]))##density
-  yminlower<-as.numeric(min(Pre0$lower))
-  ymaxupper<-as.numeric(max(yhat1<-Pre0$upper))
-  #####ggplot set
-  if (missing(histlimit)) {histlimit<-c(yminlower,ymaxupper)} else {assign("histlimit",histlimit)}
-  if (missing(histbinwidth)) {histbinwidth<-0.8} else {assign("histbinwidth",histbinwidth)}
-  if (missing(histcol)) {histcol<-"green"} else {assign("histcol",histcol)}
-  if (missing(linetype)) {linetype<-1} else {assign("linetype",linetype)}
-  if (missing(linesize)) {linesize<-1} else {assign("linesize",linesize)}
-  if (missing(ribalpha)) {ribalpha<-0.3} else {assign("ribalpha",ribalpha)}
-  if (missing(ribcol)) {ribcol<-"red"} else {assign("ribcol",ribcol)}
-  if (missing(xlab)) {xlab<-x1} else {assign("xlab",xlab)}
-  if (missing(ylab)) {ylab<-"Outcome Prediction Incidence"} else {assign("ylab",ylab)}
-  if (missing(leftaxislimit)) {leftaxislimit<-c(dmin,dmax)} else {assign("leftaxislimit",leftaxislimit)}
-  if (missing(title)) {title<-"The relationship between the variable and the predicted probability"} else {assign("title",title)}
-  P<-ggplot(Pre0,aes(x=x))+
-    geom_histogram(aes(x=x,y =rescale(..density..,histlimit)),binwidth = histbinwidth,fill=histcol,colour="black")+
-    geom_line(data=Pre0,aes(x,yhat),linetype=linetype,size=linesize,alpha = 0.9,colour="red")+
-    geom_ribbon(data=Pre0,aes(ymin = lower, ymax = upper),alpha = ribalpha,fill=ribcol)+
-    theme_bw()+
-    theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+
-    xlab(xlab)+
-    ylab(ylab)+
-    labs(title=title,subtitle=subtitle,caption=caption)
+  fit <- fit;assign("fit", fit);
+  if (!missing(group)) {assign("group",group)}
+  if (!missing(group)) {
+    #two group
+    an<-anova(fit)
+    P.value<-an[2,3]
+    P.value<-round(P.value,3)
+    dt<-data
+    x1<-x #get name
+    x<-dt[,x]#predect data x
+    gro<-dt[,group]
+    pre0<-predata(fit=fit,variables=x1,y=x,group=group)
+    pre0[,group]<-as.numeric(as.factor(pre0[,group]))
+    pre0[,group]<-as.factor(pre0[,group])
+    names(pre0)[2]<-"group"
+    x<-pre0[,x1] #plot x tow double data
+    ####data set
+    d<-density(x)
+    dmin<-as.numeric(min(d[["y"]]))##density
+    dmax<-as.numeric(max(d[["y"]]))##density
+    yminlower<-as.numeric(min(pre0$lower))
+    ymaxupper<-as.numeric(max(yhat1<-pre0$upper))
+    #####ggplot set
+    if (missing(histlimit)) {histlimit<-c(yminlower,ymaxupper)} else {assign("histlimit",histlimit)}
+    if (missing(histbinwidth)) {histbinwidth<-0.8} else {assign("histbinwidth",histbinwidth)}
+    if (missing(histcol)) {histcol<-"green"} else {assign("histcol",histcol)}
+    if (missing(linetype)) {linetype<-1} else {assign("linetype",linetype)}
+    if (missing(linesize)) {linesize<-1} else {assign("linesize",linesize)}
+    if (missing(ribalpha)) {ribalpha<-0.3} else {assign("ribalpha",ribalpha)}
+    if (missing(ribcol)) {ribcol<-"red"} else {assign("ribcol",ribcol)}
+    if (missing(Pvalue)) {Pvalue<-P.value} else {assign("Pvalue",Pvalue)}
+    if (missing(xlab)) {xlab<-x1} else {assign("xlab",xlab)}
+    if (missing(ylab)) {ylab<-"Outcome Prediction Incidence"} else {assign("ylab",ylab)}
+    if (missing(leftaxislimit)) {leftaxislimit<-c(dmin,dmax)} else {assign("leftaxislimit",leftaxislimit)}
+    if (missing(title)) {title<-"The relationship between the variable and the predicted probability"} else {assign("title",title)}
+    if (!missing(groupcol)) {assign("groupcol",groupcol)}
+    if (missing(groupcol)) {
+      P<-ggplot()+
+        geom_histogram(data=pre0,aes(x=x,y =rescale(..density..,histlimit),fill=group,group=group),
+                       binwidth = histbinwidth)+
+        geom_line(data=pre0,aes(x,yhat,colour=group,group=group),linetype=linetype,size=linesize,alpha = 0.9)+
+        geom_ribbon(data=pre0,aes(x=x,ymin=lower,ymax=upper,fill=group,group=group),alpha =ribalpha)+
+        theme_bw()+
+        theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+
+        xlab(xlab)+
+        ylab(ylab)+
+        labs(title=title)
+    } else {
+      P<-ggplot()+
+        geom_histogram(data=pre0,aes(x=x,y =rescale(..density..,histlimit),fill=group,group=group),
+                       binwidth = histbinwidth)+
+        scale_fill_manual(values=groupcol)+
+        geom_line(data=pre0,aes(x,yhat,colour=group,group=group),linetype=linetype,size=linesize,alpha = 0.9)+
+        scale_colour_manual(values=groupcol)+
+        geom_ribbon(data=pre0,aes(x=x,ymin=lower,ymax=upper,fill=group,group=group),alpha =ribalpha)+
+        theme_bw()+
+        theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+
+        xlab(xlab)+
+        ylab(ylab)+
+        labs(title=title)
+    }
+  } else {
+    #one group
+    an<-anova(fit)
+    P.value<-an[2,3]
+    P.value<-round(P.value,3)
+    dt<-data
+    x1<-x
+    x<-dt[,x]
+    pre0 <-predata(fit=fit,variables=x1,y=x)
+    pre0<-as.data.frame(pre0)
+    ####data set
+    d<-density(x)
+    dmin<-as.numeric(min(d[["y"]]))##density
+    dmax<-as.numeric(max(d[["y"]]))##density
+    yminlower<-as.numeric(min(pre0$lower))
+    ymaxupper<-as.numeric(max(yhat1<-pre0$upper))
+    #####ggplot set
+    if (missing(histlimit)) {histlimit<-c(yminlower,ymaxupper)} else {assign("histlimit",histlimit)}
+    if (missing(histbinwidth)) {histbinwidth<-0.8} else {assign("histbinwidth",histbinwidth)}
+    if (missing(histcol)) {histcol<-"green"} else {assign("histcol",histcol)}
+    if (missing(linetype)) {linetype<-1} else {assign("linetype",linetype)}
+    if (missing(linesize)) {linesize<-1} else {assign("linesize",linesize)}
+    if (missing(ribalpha)) {ribalpha<-0.3} else {assign("ribalpha",ribalpha)}
+    if (missing(ribcol)) {ribcol<-"red"} else {assign("ribcol",ribcol)}
+    if (missing(Pvalue)) {Pvalue<-P.value} else {assign("Pvalue",Pvalue)}
+    if (missing(xlab)) {xlab<-x1} else {assign("xlab",xlab)}
+    if (missing(ylab)) {ylab<-"Outcome Prediction Incidence"} else {assign("ylab",ylab)}
+    if (missing(leftaxislimit)) {leftaxislimit<-c(dmin,dmax)} else {assign("leftaxislimit",leftaxislimit)}
+    if (missing(title)) {title<-"The relationship between the variable and the predicted probability"} else {assign("title",title)}
+    P<-ggplot(pre0,aes(x=x))+
+      geom_histogram(aes(x=x,y =rescale(..density..,histlimit)),binwidth = histbinwidth,fill=histcol,colour="black")+
+      geom_line(data=pre0,aes(x,yhat),linetype=linetype,size=linesize,alpha = 0.9,colour=ribcol)+
+      geom_ribbon(data=pre0,aes(ymin = lower, ymax = upper),alpha = ribalpha,fill=ribcol)+
+      theme_bw()+
+      theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+
+      xlab(xlab)+
+      ylab(ylab)+
+      labs(title=title)
+  }
   ###LIFT
   if (lift==TRUE) {
+    if (missing(liftname)) {liftname<-"density"} else {assign("liftname",liftname)}
     P<-P+scale_y_continuous(sec.axis = sec_axis( ~rescale(.,leftaxislimit),
-                                                 name = "Probability density"))
+                                                 name = liftname))
+  }
+  if (P.Nonlinear==TRUE) {
+    text<- ""
+    text<- paste("P for Nonlinear= ",Pvalue,sep="")
+    if (missing(xP.Nonlinear)) {xP.Nonlinear<-max(x)*0.3} else {assign("xP.Nonlinear",xP.Nonlinear)}
+    if (missing(yP.Nonlinear)) {yP.Nonlinear<-max(pre0$upper)*0.95} else {assign("yP.Nonlinear",yP.Nonlinear)}
+    #xP.Nonlinear<-max(x)*0.3
+    #yP.Nonlinear<-max(pre0$upper)*0.95
+    P<-P+annotate("text", x=xP.Nonlinear,y=yP.Nonlinear,label=text,size=5)
   }
   P
 }

@@ -4,7 +4,7 @@
 \alias{predata.coxph}
 \title{predata.coxph}
 \usage{
-\method{predata}{coxph}(fit, variables, y)
+\method{predata}{coxph}(fit, variables, y, group = NULL)
 }
 \arguments{
 \item{fit}{Model function required for prediction.}
@@ -12,6 +12,8 @@
 \item{variables}{variable name.}
 
 \item{y}{the value of the variable.}
+
+\item{group}{Variables that need to be grouped.}
 }
 \value{
 Data required for plotting.

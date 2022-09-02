@@ -26,6 +26,9 @@ library(scales)
 dt<-smoke
 dd<-datadist(dt)
 options(datadist='dd')
-fit <- cph(Surv(time,status==1) ~ rcs(age,4), x=TRUE, y=TRUE,data=dt)
+fit<- cph(Surv(time,status==1) ~ rcs(age,4)+gender, x=TRUE, y=TRUE,data=dt)
+###single group
 ggrcs(data=dt,fit=fit,x="age")
+##two groups
+ggrcs(data=dt,fit=fit,x="age",group="gender")
 }

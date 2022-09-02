@@ -4,7 +4,7 @@
 \alias{predata.lrm}
 \title{predata.lrm}
 \usage{
-\method{predata}{lrm}(fit, variables, y)
+\method{predata}{lrm}(fit, variables, y, group = NULL)
 }
 \arguments{
 \item{fit}{Model function required for prediction.}
@@ -12,6 +12,8 @@
 \item{variables}{variable name.}
 
 \item{y}{the value of the variable.}
+
+\item{group}{Variables that need to be grouped.}
 }
 \value{
 Data required for plotting.

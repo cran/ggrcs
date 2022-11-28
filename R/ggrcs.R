@@ -60,14 +60,14 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     an<-anova(fit)
     P.value<-an[2,3]
     P.value<-round(P.value,3)
-    dt<-data
+    dt<-as.data.frame(data)
     x1<-x #get name
     x<-dt[,x]#predect data x
     gro<-dt[,group]
     pre0<-predata(fit=fit,variables=x1,y=x,group=group)
     pre0[,group]<-as.numeric(as.factor(pre0[,group]))
     pre0[,group]<-as.factor(pre0[,group])
-    names(pre0)[2]<-"group"
+    names(pre0)[names(pre0) == group] <- "group"
     x<-pre0[,x1] #plot x tow double data
     ####data set
     d<-density(x)
@@ -161,7 +161,7 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
   }
   if (P.Nonlinear==TRUE) {
     text<- ""
-    text<- paste("P for Nonlinear= ",Pvalue,sep="")
+    text<- paste("P for Nonlinear:",Pvalue,sep="")
     if (missing(xP.Nonlinear)) {xP.Nonlinear<-max(x)*0.3} else {assign("xP.Nonlinear",xP.Nonlinear)}
     if (missing(yP.Nonlinear)) {yP.Nonlinear<-max(pre0$upper)*0.95} else {assign("yP.Nonlinear",yP.Nonlinear)}
     #xP.Nonlinear<-max(x)*0.3

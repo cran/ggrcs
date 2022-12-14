@@ -1,4 +1,4 @@
-#'@title  predata.lrm
+#'@title  predata.ols
 #'@description Generate the predicted data for the function. This is needed for drawing.
 #'@param fit Model function required for prediction.
 #'@param variables variable name.

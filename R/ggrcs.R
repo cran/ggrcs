@@ -37,7 +37,8 @@ utils::globalVariables(c('theme_bw',
                          'sec_axis',
                          'scale_fill_manual',
                          'scale_colour_manual',
-                         'annotate'
+                         'annotate',
+                         'after_stat'
                          ))
 
 
@@ -45,7 +46,7 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
                 linetype=NULL,linesize=NULL,ribalpha=NULL,ribcol=NULL,xlab=NULL,ylab=NULL,
                 leftaxislimit=NULL,lift=TRUE,Pvalue=NULL,P.Nonlinear=FALSE,liftname=NULL,
                 title=NULL,xP.Nonlinear=NULL,yP.Nonlinear=NULL,...){
-  ..density..<-NULL;yhat<-NULL;lower<-NULL;upper<-NULL
+  density<-NULL;yhat<-NULL;lower<-NULL;upper<-NULL
   if (missing(data)) {stop("data is miss.")}
   if (missing(fit)) {stop("fit is miss.")}
   if (length(x) < 1) { stop("No valid variables.")}
@@ -53,6 +54,7 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     stop("The data argument needs to be a data frame (no quote).")
   }
   call <- match.call()
+  data<-as.data.frame(data)
   fit <- fit;assign("fit", fit);
   if (!missing(group)) {assign("group",group)}
   if (!missing(group)) {
@@ -91,7 +93,7 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     if (!missing(groupcol)) {assign("groupcol",groupcol)}
     if (missing(groupcol)) {
       P<-ggplot()+
-        geom_histogram(data=pre0,aes(x=x,y =rescale(..density..,histlimit),fill=group,group=group),
+        geom_histogram(data=pre0,aes(x=x,y =rescale(after_stat(density),histlimit),fill=group,group=group),
                        binwidth = histbinwidth)+
         geom_line(data=pre0,aes(x,yhat,colour=group,group=group),linetype=linetype,size=linesize,alpha = 0.9)+
         geom_ribbon(data=pre0,aes(x=x,ymin=lower,ymax=upper,fill=group,group=group),alpha =ribalpha)+
@@ -102,7 +104,7 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
         labs(title=title)
     } else {
       P<-ggplot()+
-        geom_histogram(data=pre0,aes(x=x,y =rescale(..density..,histlimit),fill=group,group=group),
+        geom_histogram(data=pre0,aes(x=x,y =rescale(after_stat(density),histlimit),fill=group,group=group),
                        binwidth = histbinwidth)+
         scale_fill_manual(values=groupcol)+
         geom_line(data=pre0,aes(x,yhat,colour=group,group=group),linetype=linetype,size=linesize,alpha = 0.9)+
@@ -144,7 +146,7 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     if (missing(leftaxislimit)) {leftaxislimit<-c(dmin,dmax)} else {assign("leftaxislimit",leftaxislimit)}
     if (missing(title)) {title<-"The relationship between the variable and the predicted probability"} else {assign("title",title)}
     P<-ggplot(pre0,aes(x=x))+
-      geom_histogram(aes(x=x,y =rescale(..density..,histlimit)),binwidth = histbinwidth,fill=histcol,colour="black")+
+      geom_histogram(aes(x=x,y =rescale(after_stat(density),histlimit)),binwidth = histbinwidth,fill=histcol,colour="black")+
       geom_line(data=pre0,aes(x,yhat),linetype=linetype,size=linesize,alpha = 0.9,colour=ribcol)+
       geom_ribbon(data=pre0,aes(ymin = lower, ymax = upper),alpha = ribalpha,fill=ribcol)+
       theme_bw()+

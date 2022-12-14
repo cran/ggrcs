@@ -2,7 +2,7 @@
 % Please edit documentation in R/predata.ols.R
 \name{predata.ols}
 \alias{predata.ols}
-\title{predata.lrm}
+\title{predata.ols}
 \usage{
 \method{predata}{ols}(fit, variables, y, group = NULL)
 }

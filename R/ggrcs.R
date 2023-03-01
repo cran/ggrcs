@@ -38,14 +38,18 @@ utils::globalVariables(c('theme_bw',
                          'scale_fill_manual',
                          'scale_colour_manual',
                          'annotate',
-                         'after_stat'
-                         ))
+                         'after_stat',
+                         'scale_fill_discrete',
+                         'guides',
+                         'guides scale_fill_discrete'
+))
 
 
 ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=NULL,histcol=NULL,
                 linetype=NULL,linesize=NULL,ribalpha=NULL,ribcol=NULL,xlab=NULL,ylab=NULL,
                 leftaxislimit=NULL,lift=TRUE,Pvalue=NULL,P.Nonlinear=FALSE,liftname=NULL,
-                title=NULL,xP.Nonlinear=NULL,yP.Nonlinear=NULL,...){
+                title=NULL,xP.Nonlinear=NULL,yP.Nonlinear=NULL,two.group.label=NULL,
+                bordercol=NULL,twotag.name=NULL,...){
   density<-NULL;yhat<-NULL;lower<-NULL;upper<-NULL
   if (missing(data)) {stop("data is miss.")}
   if (missing(fit)) {stop("fit is miss.")}
@@ -91,11 +95,13 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     if (missing(leftaxislimit)) {leftaxislimit<-c(dmin,dmax)} else {assign("leftaxislimit",leftaxislimit)}
     if (missing(title)) {title<-"The relationship between the variable and the predicted probability"} else {assign("title",title)}
     if (!missing(groupcol)) {assign("groupcol",groupcol)}
+    if (missing(twotag.name)) {twotag.name<-c("1","2")} else {assign("twotag.name",twotag.name)}
+    if (missing(bordercol)) {bordercol<-"black"} else {assign("bordercol",bordercol)}
     if (missing(groupcol)) {
       P<-ggplot()+
         geom_histogram(data=pre0,aes(x=x,y =rescale(after_stat(density),histlimit),fill=group,group=group),
-                       binwidth = histbinwidth)+
-        geom_line(data=pre0,aes(x,yhat,colour=group,group=group),linetype=linetype,size=linesize,alpha = 0.9)+
+                       binwidth = histbinwidth,color=bordercol)+scale_fill_discrete(labels = twotag.name)+
+        geom_line(data=pre0,aes(x,yhat,colour=group,group=group),linetype=linetype,size=linesize,alpha = 0.9)+guides(colour = "none")+
         geom_ribbon(data=pre0,aes(x=x,ymin=lower,ymax=upper,fill=group,group=group),alpha =ribalpha)+
         theme_bw()+
         theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+
@@ -105,11 +111,11 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     } else {
       P<-ggplot()+
         geom_histogram(data=pre0,aes(x=x,y =rescale(after_stat(density),histlimit),fill=group,group=group),
-                       binwidth = histbinwidth)+
-        scale_fill_manual(values=groupcol)+
+                       binwidth = histbinwidth,color=bordercol)+
+        scale_fill_manual(values=groupcol,labels = twotag.name)+
         geom_line(data=pre0,aes(x,yhat,colour=group,group=group),linetype=linetype,size=linesize,alpha = 0.9)+
         scale_colour_manual(values=groupcol)+
-        geom_ribbon(data=pre0,aes(x=x,ymin=lower,ymax=upper,fill=group,group=group),alpha =ribalpha)+
+        geom_ribbon(data=pre0,aes(x=x,ymin=lower,ymax=upper,fill=group,group=group),alpha =ribalpha)+guides(colour = "none")+
         theme_bw()+
         theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+
         xlab(xlab)+
@@ -172,3 +178,4 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
   }
   P
 }
+

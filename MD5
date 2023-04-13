@@ -1,10 +1,12 @@
-68aec35ecf5a3c1f45a330f1b82081b2 *DESCRIPTION
-6c5fdcc4ce1c63e338394cd3d415515a *NAMESPACE
+77661d5c4639b18c48e69eeea8bfbc66 *DESCRIPTION
+6f412011125cc1b254df56499e1642bb *NAMESPACE
+92cfdb42bb5fb0bf816b504ff2022840 *NEWS.md
 368cb3f3c04be3cb3be77f691b9b04a5 *R/ggrcs.R
 1a50bb4049c0ebd1e38f13b72539d032 *R/predata.R
 6a472dbba34a1455680b71556d49ae4e *R/predata.coxph.R
 5877913f96b1f3fa8e1aa8c5a8db6a65 *R/predata.lrm.R
 662096677922f8bf15c00b62c988ad2e *R/predata.ols.R
+ac22f430784877569dce6d25805ebc82 *R/singlercs.R
 504e852e34ef3d301c58d8de6bc28a83 *R/smoke.R
 6e1e7e49ffdae2fe41cc32b475a0a84e *data/smoke.rda
 c4a29bff8f86594c5a6f6f1f61613843 *man/ggrcs.Rd
@@ -12,4 +14,5 @@ c4a29bff8f86594c5a6f6f1f61613843 *man/ggrcs.Rd
 0f27435623bdb6e71851fd98b113ce02 *man/predata.coxph.Rd
 6e8bdc9f45660fcf4720c6d5ab944e59 *man/predata.lrm.Rd
 659be8c75ef3d3a7d60d43ec3e010d7f *man/predata.ols.Rd
+29ba700304ba2373006f851821b3eba1 *man/singlercs.Rd
 8c7682c9b42b6ef4565f7631a549dd83 *man/smoke.Rd

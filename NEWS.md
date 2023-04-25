@@ -1,4 +1,4 @@
-# ggrcs 0.2.9
+# ggrcs 0.3.0
 
 * Added a `NEWS.md` file to track changes to the package.
-# ggrcs 0.2.9 has added a separate function "singlercs" for plotting rcs curves.
+# ggrcs 0.3.0 adds a small example of the use of the R package.

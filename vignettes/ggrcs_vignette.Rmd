@@ -1,0 +1,195 @@
+---
+title: "ggrcs_vignette"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ggrcs_vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ggrcs)
+```
+
+## What is "ggrcs"?
+
+In computer-aided design and computer graphics in computer science, splines usually refer to polynomial parametric curves defined in segments. Because of their simplicity of construction, ease of use, accuracy of fitting, and ability to approximate complex shapes in curve fitting and interactive curve design, splines are a common representation of curves in these fields.
+
+The keyword segmentation within the spline function, followed by the keyword restriction in the restricted cubic spline, is the key to our understanding of RCS. In contrast to normal non-linear regression, the restricted cubic spline is segmented, with each interval having its own function, and the intervals on the far sides are linear.
+
+Using restricted cubic splines, we can perform linear and non-linear analyses of the relationship between objectives and outcomes.
+
+Let's put this into practice.The ggrcs package supports cox regression, logistic regression, and linear regression. ggrcs package has two main functions, the ggrcs function and the singlercs function. ggrcs function is used for plotting histograms + restricted cubic samples. singlercs function is used for plotting simple restricted cubic samples.
+
+## R package import and data preparation, model building.
+
+We start by importing the R package we need.
+
+```{r message=FALSE, warning=FALSE}
+library(rms)
+library(ggplot2)
+library(scales)
+library(ggrcs)
+```
+
+The ggrcs package comes with a data on smoking and disease prevalence, which we import.
+
+```{r paged.print=FALSE}
+dt<-smoke
+```
+
+The rms package for data analysis requires the data to be collated and we perform this process.
+
+```{r}
+dd<-datadist(dt)
+options(datadist='dd')
+```
+
+Build a cox regression model.
+
+```{r}
+fit<- cph(Surv(time,status==1) ~ rcs(age,4)+gender, x=TRUE, y=TRUE,data=dt)
+```
+
+### ggrcs function usage
+
+Suppose we want to understand the relationship between age and disease incidence.
+
+```{r}
+ggrcs(data=dt,fit=fit,x="age")
+```
+
+We can make changes to the details.
+
+Modify the histogram colour and the width of the histogram bars.
+
+```{r}
+ggrcs(data=dt,fit=fit,x="age",histcol="blue",histbinwidth=1)
+```
+
+Modify the colour and transparency of the confidence interval.
+
+```{r}
+ggrcs(data=dt,fit=fit,x="age",histcol="blue",histbinwidth=1,ribcol="green",ribalpha=0.5)
+```
+
+Modify X-axis, Y-axis label names and modify titles.
+
+```{r}
+ggrcs(data=dt,fit=fit,x="age",histcol="blue",
+      histbinwidth=1,ribcol="green",ribalpha=0.5,xlab ="age(year)",
+      ylab="disease prevalence",title ="Relationship between age and disease prevalence.",liftname="Probability density")
+```
+
+After generating the plot we can P.Nonlinear=T to add a P value to the plot, which by default is placed in the top left corner. If you want to not show the right axis, you can set lift=F.
+
+```{r}
+ggrcs(data=dt,fit=fit,x="age",histcol="blue",
+      histbinwidth=1,ribcol="green",ribalpha=0.5,xlab ="age(year)",
+      ylab="disease prevalence",title ="Relationship between age and disease prevalence.",liftname="Probability density",lift=F,P.Nonlinear=T)
+
+```
+
+We can customise the range and position of P values.
+
+```{r}
+ggrcs(data=dt,fit=fit,x="age",histcol="blue",
+      histbinwidth=1,ribcol="green",ribalpha=0.5,xlab ="age(year)",
+      ylab="disease prevalence",title ="Relationship between age and disease prevalence.",liftname="Probability density",lift=F,P.Nonlinear=T,Pvalue="<0.05")
+```
+
+The generated image can still be modified, and with the interface to ggplot, we can continue to modify the image by means of ggplot, suppose I want to add a vertical line in the middle of the image after the image has been generated.
+
+```{r}
+p<-ggrcs(data=dt,fit=fit,x="age",histcol="blue",
+      histbinwidth=1,ribcol="green",ribalpha=0.5,xlab ="age(year)",
+      ylab="disease prevalence",title ="Relationship between age and disease prevalence.",liftname="Probability density",lift=F,P.Nonlinear=T,Pvalue="<0.05")
+p+geom_vline(aes(xintercept=45.6),colour="red", linetype=1)
+```
+
+This greatly increases our flexibility to manipulate the image, later you want to add horizontal lines, text plus other are available. Let's proceed with the double group RCS drawing operation.
+
+```{r}
+ggrcs(data=dt,fit=fit,x="age",group="gender")
+
+```
+
+The colours can be customised using the indicator groupcol.
+
+```{r}
+ggrcs(data=dt,fit=fit,x="age",group="gender",groupcol=c("red","blue"),histbinwidth=1)
+
+```
+
+We can add P-values and set the position of the P-values.
+
+```{r}
+ggrcs(data=dt,fit=fit,x="age",group="gender",
+      groupcol=c("red","blue"),histbinwidth=1,ribalpha=0.5,xlab ="age(year)",
+      ylab="disease prevalence",title ="Relationship between age and disease prevalence.",leftaxislimit=c(0,1),liftname="Probability density",
+      P.Nonlinear=T,Pvalue="<0.05",xP.Nonlinear=25,yP.Nonlinear=18)
+
+```
+
+The tag name of a double group can be changed via the twotag.name variable.
+
+
+```{r}
+ggrcs(data=dt,fit=fit,x="age",group="gender",
+      groupcol=c("red","blue"),histbinwidth=1,ribalpha=0.5,xlab ="age(year)",
+      ylab="disease prevalence",title ="Relationship between age and disease prevalence.",leftaxislimit=c(0,1),liftname="Probability density",
+      P.Nonlinear=T,Pvalue="<0.05",xP.Nonlinear=25,yP.Nonlinear=18,twotag.name= c("m","f"))
+```
+
+When plotting a histogram + restricted cube bar graph, it is best to observe that the variables are normally distributed so that the graph is plotted more ideally. If it is not normally distributed, we can take the logarithm of it to make it approximately normal.
+
+If drawing a superimposed graph is not ideal, we can use the singlercs function to draw a simple restricted cubic spline.
+
+### singlercs function usage
+
+The singlercs function draws restriction cubes in much the same way as the ggrcs function. The following is a brief demonstration.
+
+```{r}
+singlercs(data=dt,fit=fit,x="age")
+```
+
+Once you have drawn the picture, you can continue with further editing.
+
+```{r}
+p<-singlercs(data=dt,fit=fit,x="age")
+p+geom_hline(yintercept=1, linetype=2,linewidth=1)
+```
+
+Change line and confidence interval colours.
+
+```{r}
+singlercs(data=dt,fit=fit,x="age",ribcol="green")
+```
+
+Change the transparency of the confidence interval
+
+```{r}
+singlercs(data=dt,fit=fit,x="age",ribcol="green",ribalpha=0.2)
+```
+
+Draw sorted (two) RCS curves, default red and green if no colour is set.
+
+```{r}
+singlercs(data=dt,fit=fit,x="age",group="gender")
+
+```
+
+Change the colour.
+
+```{r}
+singlercs(data=dt,fit=fit,x="age",group="gender",groupcol=c("red","blue"))
+```
+
+In linear regression, it may be better to use the singlercs function.

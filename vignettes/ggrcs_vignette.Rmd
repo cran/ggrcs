@@ -37,6 +37,7 @@ library(rms)
 library(ggplot2)
 library(scales)
 library(ggrcs)
+library(cowplot)
 ```
 
 The ggrcs package comes with a data on smoking and disease prevalence, which we import.
@@ -134,7 +135,7 @@ We can add P-values and set the position of the P-values.
 ggrcs(data=dt,fit=fit,x="age",group="gender",
       groupcol=c("red","blue"),histbinwidth=1,ribalpha=0.5,xlab ="age(year)",
       ylab="disease prevalence",title ="Relationship between age and disease prevalence.",leftaxislimit=c(0,1),liftname="Probability density",
-      P.Nonlinear=T,Pvalue="<0.05",xP.Nonlinear=25,yP.Nonlinear=18)
+      P.Nonlinear=T,Pvalue="<0.05",px=25,py=18)
 
 ```
 
@@ -145,7 +146,7 @@ The tag name of a double group can be changed via the twotag.name variable.
 ggrcs(data=dt,fit=fit,x="age",group="gender",
       groupcol=c("red","blue"),histbinwidth=1,ribalpha=0.5,xlab ="age(year)",
       ylab="disease prevalence",title ="Relationship between age and disease prevalence.",leftaxislimit=c(0,1),liftname="Probability density",
-      P.Nonlinear=T,Pvalue="<0.05",xP.Nonlinear=25,yP.Nonlinear=18,twotag.name= c("m","f"))
+      P.Nonlinear=T,Pvalue="<0.05",px=25,py=18,twotag.name= c("m","f"))
 ```
 
 When plotting a histogram + restricted cube bar graph, it is best to observe that the variables are normally distributed so that the graph is plotted more ideally. If it is not normally distributed, we can take the logarithm of it to make it approximately normal.

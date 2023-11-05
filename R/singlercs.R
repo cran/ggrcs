@@ -47,9 +47,9 @@ utils::globalVariables(c('theme_bw',
 
 singlercs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=NULL,histcol=NULL,
                     linetype=NULL,linesize=NULL,ribalpha=NULL,ribcol=NULL,xlab=NULL,ylab=NULL,
-                    leftaxislimit=NULL,lift=TRUE,Pvalue=NULL,P.Nonlinear=FALSE,liftname=NULL,
-                    title=NULL,xP.Nonlinear=NULL,yP.Nonlinear=NULL,two.group.label=NULL,
-                    bordercol=NULL,twotag.name=NULL,...){
+                    leftaxislimit=NULL,lift=TRUE,P.Nonlinear=TRUE,liftname=NULL,gethline=TRUE,
+                    title=NULL,px=NULL,py=NULL,two.group.label=NULL,histalpha=NULL,linealpha=NULL,linecol=NULL,
+                    bordercol=NULL,twotag.name=NULL,dec=NULL,fontsize=12,fontfamily="serif",colset=NULL,...){
   density<-NULL;yhat<-NULL;lower<-NULL;upper<-NULL
   if (missing(data)) {stop("data is miss.")}
   if (missing(fit)) {stop("fit is miss.")}
@@ -60,12 +60,23 @@ singlercs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwi
   call <- match.call()
   data<-as.data.frame(data)
   fit <- fit;assign("fit", fit);
-  if (!missing(group)) {assign("group",group)}
+  if (is.null(dec)) {dec<-3} else {dec<-dec}
+  an<-anova(fit)
+  if (any(class(fit)=="cph"|class(fit)=="lrm")==T) {
+    p.value <- an[2, 3]
+    p.overall <- an[1, 3]
+  } else {
+    p.value <- an[2, 5]
+    p.overall <- an[1, 5]
+  }
+  p.value<-pvformat(p.value,dec)
+  p.overall<-pvformat(p.overall,dec)
+  if (!missing(group)) {
+    assign("group",group)
+    groupname<-levels(factor(data[,group]))
+  }
   if (!missing(group)) {
     #two group
-    an<-anova(fit)
-    P.value<-an[2,3]
-    P.value<-round(P.value,3)
     dt<-as.data.frame(data)
     x1<-x #get name
     x<-dt[,x]#predect data x
@@ -86,18 +97,39 @@ singlercs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwi
     if (missing(linesize)) {linesize<-1} else {assign("linesize",linesize)}
     if (missing(ribalpha)) {ribalpha<-0.3} else {assign("ribalpha",ribalpha)}
     if (missing(ribcol)) {ribcol<-"red"} else {assign("ribcol",ribcol)}
-    if (missing(Pvalue)) {Pvalue<-P.value} else {assign("Pvalue",Pvalue)}
     if (missing(xlab)) {xlab<-x1} else {assign("xlab",xlab)}
     if (missing(ylab)) {ylab<-"Outcome Prediction Incidence"} else {assign("ylab",ylab)}
+    if (missing(histalpha)) {histalpha<-0.5} else {assign("histalpha",histalpha)}
+    if (missing(linealpha)) {linealpha<-0.7} else {assign("linealpha",linealpha)}
+    if (missing(linecol)) {linecol<-ribcol} else {linecol<-linecol}
     if (missing(leftaxislimit)) {leftaxislimit<-c(dmin,dmax)} else {assign("leftaxislimit",leftaxislimit)}
     if (missing(title)) {title<-"The relationship between the variable and the predicted probability"} else {assign("title",title)}
     if (!missing(groupcol)) {assign("groupcol",groupcol)}
-    if (missing(twotag.name)) {twotag.name<-c("1","2")} else {assign("twotag.name",twotag.name)}
+    if (missing(twotag.name)) {twotag.name<-groupname} else {assign("twotag.name",twotag.name)}
     if (missing(bordercol)) {bordercol<-"black"} else {assign("bordercol",bordercol)}
     if (missing(groupcol)) {
+      groupcol=c("plum1","lightblue3")
+      if ((!missing(colset))) {
+        if (colset=="A")  {
+          groupcol<-c("darkseagreen1","gold1")
+        }
+        if (colset=="B")  {
+          groupcol<-c("darkseagreen1","burlywood3")
+        }
+        if (colset=="C")  {
+          groupcol<-c("cornsilk","palegreen")
+        }
+        if (colset=="D")  {
+          groupcol<-c("springgreen","tan3")
+        }
+      }
       P<-ggplot()+
-        geom_line(data=pre0,aes(x,yhat,group=group,col=group),linetype=linetype,size=linesize)+
+        geom_line(data=pre0,aes(x,yhat,group=group,col=group),linetype=linetype,
+                  linewidth=linesize,alpha = linealpha)+
+        scale_colour_manual(values=groupcol,labels = twotag.name)+
         geom_ribbon(data=pre0,aes(x,ymin = lower, ymax = upper,fill=group),alpha = ribalpha)+
+        scale_fill_manual(values=groupcol)+
+        guides(colour = "none")+
         theme_bw()+
         theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+
         xlab(xlab)+
@@ -105,10 +137,11 @@ singlercs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwi
         labs(title=title)
     } else {
       P<-ggplot()+
-        geom_line(data=pre0,aes(x,yhat,colour=group,group=group),linetype=linetype,size=linesize)+
-        scale_fill_manual(values=groupcol,labels = twotag.name)+
+        geom_line(data=pre0,aes(x,yhat,colour=group,group=group),linetype=linetype,
+                  linewidth=linesize,alpha = linealpha)+
         scale_colour_manual(values=groupcol)+
-        geom_ribbon(data=pre0,aes(x=x,ymin=lower,ymax=upper,fill=group,group=group),alpha =ribalpha)+guides(colour = "none")+
+        geom_ribbon(data=pre0,aes(x=x,ymin=lower,ymax=upper,fill=group,group=group),alpha =ribalpha)+
+        guides(colour = "none")+
         theme_bw()+
         theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+
         xlab(xlab)+
@@ -129,13 +162,34 @@ singlercs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwi
     if (missing(linetype)) {linetype<-1} else {assign("linetype",linetype)}
     if (missing(linesize)) {linesize<-1} else {assign("linesize",linesize)}
     if (missing(ribalpha)) {ribalpha<-0.3} else {assign("ribalpha",ribalpha)}
-    if (missing(ribcol)) {ribcol<-"red"} else {assign("ribcol",ribcol)}
-    if (missing(Pvalue)) {Pvalue<-P.value} else {assign("Pvalue",Pvalue)}
+    if (missing(ribcol)) {ribcol<-"plum1"} else {assign("ribcol",ribcol)}
     if (missing(xlab)) {xlab<-x1} else {assign("xlab",xlab)}
     if (missing(ylab)) {ylab<-"Outcome Prediction Incidence"} else {assign("ylab",ylab)}
+    if (missing(histalpha)) {histalpha<-0.5} else {assign("histalpha",histalpha)}
+    if (missing(linealpha)) {linealpha<-0.7} else {assign("linealpha",linealpha)}
+    if (missing(linecol)) {linecol<-ribcol} else {linecol<-linecol}
     if (missing(title)) {title<-"The relationship between the variable and the predicted probability"} else {assign("title",title)}
+    if ((!missing(colset))) {
+      if (colset=="A")  {
+        ribcol<-c("gold1")
+        linecol<-c("gold1")
+      }
+      if (colset=="B")  {
+        ribcol<-c("burlywood3")
+        linecol<-c("burlywood3")
+      }
+      if (colset=="C")  {
+        ribcol<-c("palegreen")
+        linecol<-c("palegreen")
+      }
+      if (colset=="D")  {
+        ribcol<-c("tan3")
+        linecol<-c("tan3")
+      }
+    }
     P<-ggplot(pre0,aes(x=x))+
-      geom_line(data=pre0,aes(x,yhat),linetype=linetype,size=linesize,alpha = 0.9,colour=ribcol)+
+      geom_line(data=pre0,aes(x,yhat),linetype=linetype,linewidth=linesize,
+                alpha = linealpha,colour=linecol)+
       geom_ribbon(data=pre0,aes(ymin = lower, ymax = upper),alpha = ribalpha,fill=ribcol)+
       theme_bw()+
       theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+
@@ -144,13 +198,37 @@ singlercs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwi
       labs(title=title)
   }
   if (P.Nonlinear==TRUE) {
+    if (any(grepl("<",p.value))) {
+      p.value <- paste0("P for nonlinear", p.value)
+    }
+    else {
+      p.value <- paste0("P for nonlinear", " = ",
+                        p.value)
+    }
+    if (any(grepl("<",p.overall))) {
+      p.overall <- paste0("P for overall", p.overall)
+    }
+    else {
+      p.overall <- paste0("P for overall", " = ",
+                          p.overall)
+    }
     text<- ""
-    text<- paste("P for Nonlinear:",Pvalue,sep="")
-    if (missing(xP.Nonlinear)) {xP.Nonlinear<-max(x)*0.3} else {assign("xP.Nonlinear",xP.Nonlinear)}
-    if (missing(yP.Nonlinear)) {yP.Nonlinear<-max(pre0$upper)*0.95} else {assign("yP.Nonlinear",yP.Nonlinear)}
-    #xP.Nonlinear<-max(x)*0.3
-    #yP.Nonlinear<-max(pre0$upper)*0.95
-    P<-P+annotate("text", x=xP.Nonlinear,y=yP.Nonlinear,label=text,size=5)
+    text<- paste(p.overall, p.value, sep = "\n")
+    if (missing(px)) {px<-max(x)*0.3} else {assign("px",px)}
+    if (missing(py)) {py<-max(pre0$upper)*0.95} else {assign("py",py)}
+    #px<-max(x)*0.3
+    #py<-max(pre0$upper)*0.95
+    P<-P+draw_label(text, size = fontsize,
+                    fontfamily = fontfamily, x = px, y = py, hjust = 0,
+                    vjust = 1)
+  }
+  if (gethline) {
+    if (any(class(fit)=="cph"|class(fit)=="lrm")==T) {
+      yintercept<-1
+    } else {
+      yintercept<-0
+    }
+    P<-P+geom_hline(yintercept=yintercept, linetype=2,linewidth=0.5)
   }
   P
 }

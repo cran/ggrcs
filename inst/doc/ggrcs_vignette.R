@@ -12,6 +12,7 @@ library(rms)
 library(ggplot2)
 library(scales)
 library(ggrcs)
+library(cowplot)
 
 ## ----paged.print=FALSE--------------------------------------------------------
 dt<-smoke
@@ -66,14 +67,14 @@ ggrcs(data=dt,fit=fit,x="age",group="gender",groupcol=c("red","blue"),histbinwid
 ggrcs(data=dt,fit=fit,x="age",group="gender",
       groupcol=c("red","blue"),histbinwidth=1,ribalpha=0.5,xlab ="age(year)",
       ylab="disease prevalence",title ="Relationship between age and disease prevalence.",leftaxislimit=c(0,1),liftname="Probability density",
-      P.Nonlinear=T,Pvalue="<0.05",xP.Nonlinear=25,yP.Nonlinear=18)
+      P.Nonlinear=T,Pvalue="<0.05",px=25,py=18)
 
 
 ## -----------------------------------------------------------------------------
 ggrcs(data=dt,fit=fit,x="age",group="gender",
       groupcol=c("red","blue"),histbinwidth=1,ribalpha=0.5,xlab ="age(year)",
       ylab="disease prevalence",title ="Relationship between age and disease prevalence.",leftaxislimit=c(0,1),liftname="Probability density",
-      P.Nonlinear=T,Pvalue="<0.05",xP.Nonlinear=25,yP.Nonlinear=18,twotag.name= c("m","f"))
+      P.Nonlinear=T,Pvalue="<0.05",px=25,py=18,twotag.name= c("m","f"))
 
 ## -----------------------------------------------------------------------------
 singlercs(data=dt,fit=fit,x="age")

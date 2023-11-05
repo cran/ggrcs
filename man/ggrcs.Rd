@@ -23,6 +23,7 @@ You can use this function to easily draw a combined.histogram and restricted cub
 library(rms)
 library(ggplot2)
 library(scales)
+library(cowplot)
 dt<-smoke
 dd<-datadist(dt)
 options(datadist='dd')

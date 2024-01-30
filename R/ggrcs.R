@@ -46,7 +46,11 @@ utils::globalVariables(c('theme_bw',
                          'guides',
                          'guides scale_fill_discrete',
                          'draw_label',
-                         'geom_hline'
+                         'geom_hline',
+                         'geom_density',
+                         'scale_x_continuous',
+                         'element_text',
+                         'windowsFont'
 ))
 
 
@@ -54,14 +58,12 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
                 linetype=NULL,linesize=NULL,ribalpha=NULL,ribcol=NULL,xlab=NULL,ylab=NULL,
                 leftaxislimit=NULL,lift=TRUE,P.Nonlinear=TRUE,liftname=NULL,riblinecol=NULL,linecol=NULL,
                 title=NULL,px=NULL,py=NULL,two.group.label=NULL,histalpha=NULL,linealpha=NULL,
-                bordercol=NULL,twotag.name=NULL,dec=NULL,fontsize=12,fontfamily="serif",colset=NULL,...){
+                bordercol=NULL,twotag.name=NULL,dec=NULL,fontsize=15,axis.text.size=15,fontfamily="serif",colset=NULL,
+                breaks=NULL,pdensity=FALSE,limits=NULL,x.breaks=NULL,x.moiety=NULL,...){
   density<-NULL;yhat<-NULL;lower<-NULL;upper<-NULL
   if (missing(data)) {stop("data is miss.")}
   if (missing(fit)) {stop("fit is miss.")}
   if (length(x) < 1) { stop("No valid variables.")}
-  if (is.data.frame(data) == FALSE) {
-    stop("The data argument needs to be a data frame (no quote).")
-  }
   call <- match.call()
   data<-as.data.frame(data)
   fit <- fit;assign("fit", fit);
@@ -87,6 +89,7 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     x<-dt[,x]#predect data x
     gro<-dt[,group]
     pre0<-predata(fit=fit,variables=x1,y=x,group=group)
+    pre0<-as.data.frame(pre0)
     pre0[,group]<-as.numeric(as.factor(pre0[,group]))
     pre0[,group]<-as.factor(pre0[,group])
     names(pre0)[names(pre0) == group] <- "group"
@@ -97,6 +100,24 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     dmax<-as.numeric(max(d[["y"]]))##density
     yminlower<-as.numeric(min(pre0$lower))
     ymaxupper<-as.numeric(max(yhat1<-pre0$upper))
+    if (missing(groupcol)) {
+      groupcol=c("plum1","lightblue3")
+      if ((!missing(colset))) {
+        if (colset=="A")  {
+          groupcol<-c("darkseagreen1","gold1")
+        }
+        if (colset=="B")  {
+          groupcol<-c("darkseagreen1","burlywood3")
+        }
+        if (colset=="C")  {
+          groupcol<-c("cornsilk","palegreen")
+        }
+        if (colset=="D")  {
+          groupcol<-c("springgreen","tan3")
+        }
+      } else {
+        groupcol<-groupcol
+      }}
     #####ggplot set
     if (missing(histlimit)) {histlimit<-c(yminlower,ymaxupper)} else {assign("histlimit",histlimit)}
     if (missing(histbinwidth)) {histbinwidth<-0.8} else {assign("histbinwidth",histbinwidth)}
@@ -115,52 +136,65 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     if (!missing(groupcol)) {assign("groupcol",groupcol)}
     if (missing(twotag.name)) {twotag.name<-groupname} else {assign("twotag.name",twotag.name)}
     if (missing(bordercol)) {bordercol<-"black"} else {assign("bordercol",bordercol)}
-    if (missing(groupcol)) {
-      groupcol=c("plum1","lightblue3")
-      if ((!missing(colset))) {
-        if (colset=="A")  {
-          groupcol<-c("darkseagreen1","gold1")
-        }
-        if (colset=="B")  {
-          groupcol<-c("darkseagreen1","burlywood3")
-        }
-        if (colset=="C")  {
-          groupcol<-c("cornsilk","palegreen")
-        }
-        if (colset=="D")  {
-          groupcol<-c("springgreen","tan3")
-        }
-      }
+    ######
+    if (pdensity==FALSE) {
       p<-ggplot()+
         geom_histogram(data=pre0,aes(x=x,y =rescale(after_stat(density),histlimit),fill=group,group=group),
                        binwidth = histbinwidth,color=bordercol,alpha = histalpha)+
-        scale_fill_manual(values=groupcol,labels = twotag.name)+
-        geom_line(data=pre0,aes(x,yhat,colour=group,group=group),
-                  linetype=linetype,linewidth=linesize,alpha = linealpha)+
-        scale_colour_manual(values=groupcol)+
-        geom_ribbon(data=pre0,aes(x=x,ymin=lower,ymax=upper,fill=group,group=group),alpha =ribalpha)+
-        guides(colour = "none")+
-        theme_bw()+
-        theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+
-        xlab(xlab)+
-        ylab(ylab)+
-        labs(title=title)
+        scale_fill_manual(values=groupcol,labels = twotag.name)
+
     } else {
       p<-ggplot()+
-        geom_histogram(data=pre0,aes(x=x,y =rescale(after_stat(density),histlimit),fill=group,group=group),
-                       binwidth = histbinwidth,color=bordercol,alpha = histalpha)+
-        scale_fill_manual(values=groupcol,labels = twotag.name)+
-        geom_line(data=pre0,aes(x,yhat,colour=group,group=group),
-                  linetype=linetype,linewidth=linesize,alpha = linealpha)+
+        geom_density(data=pre0,aes(x=x,y =rescale(after_stat(density),histlimit),fill=group,group=group),
+                     color=bordercol,alpha = histalpha)+
+        scale_fill_manual(values=groupcol,labels = twotag.name)
+    }
+    ##############
+    if (!missing(breaks) |!missing(x.breaks) |!missing(x.moiety)) {
+      if (is.null(x.breaks)) {
+        if (is.null(x.moiety)) {x.by<-breaks
+        } else {
+          x.by<-round(max(x)/x.moiety, 0)
+        }
+        breaks <- seq(0, max(x), by = x.by)
+      } else {breaks<-x.breaks}
+    }
+    if (!missing(limits)) limits<-limits
+    if (!missing(breaks) & !missing(limits)) {
+      p<-p+scale_x_continuous(breaks = breaks, limits = limits)
+    } else if (!missing(breaks) ) {
+      p<-p+scale_x_continuous(breaks = breaks)
+    } else if (!missing(limits)) {
+      p<-p+scale_x_continuous(limits = limits)
+    }
+    ############
+    if (missing(riblinecol)) {
+      p<-p+geom_line(data=pre0,aes(x,yhat,colour=group,group=group),
+                     linetype=linetype,linewidth=linesize,alpha = linealpha)+
         scale_colour_manual(values=groupcol)+
         geom_ribbon(data=pre0,aes(x=x,ymin=lower,ymax=upper,fill=group,group=group),alpha =ribalpha)+
-        guides(colour = "none")+
-        theme_bw()+
-        theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+
-        xlab(xlab)+
-        ylab(ylab)+
-        labs(title=title)
+        guides(colour = "none")
+    } else {
+      riblinecol<-riblinecol
+      p<-p+geom_line(data=pre0,aes(x,yhat,colour=group,group=group),
+                     linetype=linetype,linewidth=linesize,alpha = linealpha)+
+        scale_colour_manual(values=groupcol)+
+        geom_ribbon(data=pre0,aes(x=x,ymin=lower,ymax=upper,fill=group,group=group),alpha =ribalpha)+
+        guides(colour = "none")
     }
+    #########
+    p<-p+theme_bw()+
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.text.x = element_text(family = fontfamily,size = axis.text.size),
+            axis.text.y = element_text(family = fontfamily,size = axis.text.size),
+            axis.title.x = element_text(family = fontfamily,size = fontsize),
+            axis.title.y = element_text(family = fontfamily,size = fontsize),
+            text = element_text(family = fontfamily)
+      )+
+      xlab(xlab)+
+      ylab(ylab)+
+      labs(title=title)
   } else {
     #one group
     dt<-data
@@ -174,21 +208,6 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     dmax<-as.numeric(max(d[["y"]]))##density
     yminlower<-as.numeric(min(pre0$lower))
     ymaxupper<-as.numeric(max(yhat1<-pre0$upper))
-    #####ggplot set
-    if (missing(histlimit)) {histlimit<-c(yminlower,ymaxupper)} else {assign("histlimit",histlimit)}
-    if (missing(histbinwidth)) {histbinwidth<-0.8} else {assign("histbinwidth",histbinwidth)}
-    if (missing(histcol)) {histcol<-"plum1"} else {assign("histcol",histcol)}
-    if (missing(linetype)) {linetype<-1} else {assign("linetype",linetype)}
-    if (missing(linesize)) {linesize<-1} else {assign("linesize",linesize)}
-    if (missing(ribalpha)) {ribalpha<-0.3} else {assign("ribalpha",ribalpha)}
-    if (missing(ribcol)) {ribcol<-"lightblue3"} else {assign("ribcol",ribcol)}
-    if (missing(xlab)) {xlab<-x1} else {assign("xlab",xlab)}
-    if (missing(ylab)) {ylab<-"Outcome Prediction Incidence"} else {assign("ylab",ylab)}
-    if (missing(histalpha)) {histalpha<-0.5} else {assign("histalpha",histalpha)}
-    if (missing(linealpha)) {linealpha<-0.7} else {assign("linealpha",linealpha)}
-    if (missing(linecol)) {linecol<-ribcol} else {linecol<-linecol}
-    if (missing(leftaxislimit)) {leftaxislimit<-c(dmin,dmax)} else {assign("leftaxislimit",leftaxislimit)}
-    if (missing(title)) {title<-"The relationship between the variable and the predicted probability"} else {assign("title",title)}
     if ((!missing(colset))) {
       if (colset=="A")  {
         histcol<-c("darkseagreen1")
@@ -207,23 +226,67 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
         ribcol<-c("tan3")
       }
     }
-    if (missing(riblinecol)) {
+    #####ggplot set
+    if (missing(histlimit)) {histlimit<-c(yminlower,ymaxupper)} else {assign("histlimit",histlimit)}
+    if (missing(histbinwidth)) {histbinwidth<-0.8} else {assign("histbinwidth",histbinwidth)}
+    if (missing(histcol)) {histcol<-"plum1"} else {assign("histcol",histcol)}
+    if (missing(linetype)) {linetype<-1} else {assign("linetype",linetype)}
+    if (missing(linesize)) {linesize<-1} else {assign("linesize",linesize)}
+    if (missing(ribalpha)) {ribalpha<-0.3} else {assign("ribalpha",ribalpha)}
+    if (missing(ribcol)) {ribcol<-"lightblue3"} else {assign("ribcol",ribcol)}
+    if (missing(xlab)) {xlab<-x1} else {assign("xlab",xlab)}
+    if (missing(ylab)) {ylab<-"Outcome Prediction Incidence"} else {assign("ylab",ylab)}
+    if (missing(histalpha)) {histalpha<-0.5} else {assign("histalpha",histalpha)}
+    if (missing(linealpha)) {linealpha<-0.7} else {assign("linealpha",linealpha)}
+    if (missing(linecol)) {linecol<-ribcol} else {linecol<-linecol}
+    if (missing(leftaxislimit)) {leftaxislimit<-c(dmin,dmax)} else {assign("leftaxislimit",leftaxislimit)}
+    if (missing(title)) {title<-"The relationship between the variable and the predicted probability"} else {assign("title",title)}
+    #############
+    if (pdensity==FALSE) {
       p<-ggplot(pre0,aes(x=x))+
         geom_histogram(aes(x=x,y =rescale(after_stat(density),histlimit)),
-                       binwidth = histbinwidth,fill=histcol,colour="black",alpha=histalpha)+
-        geom_line(data=pre0,aes(x,yhat),linetype=linetype,linewidth=linesize,alpha = linealpha,colour=linecol)+
+                       binwidth = histbinwidth,fill=histcol,colour="black",alpha=histalpha)
+    } else {
+      p<-ggplot(pre0,aes(x=x))+
+        geom_density(aes(x=x,y =rescale(after_stat(density),histlimit)),
+                     fill=histcol,colour="black",alpha=histalpha)
+    }
+    #############
+    if (!missing(breaks) |!missing(x.breaks) |!missing(x.moiety)) {
+      if (is.null(x.breaks)) {
+        if (is.null(x.moiety)) {x.by<-breaks
+        } else {
+          x.by<-round(max(x)/x.moiety, 0)
+        }
+        breaks <- seq(0, max(x), by = x.by)
+      } else {breaks<-x.breaks}
+    }
+    if (!missing(limits)) limits<-limits
+    if (!missing(breaks) & !missing(limits)) {
+      p<-p+scale_x_continuous(breaks = breaks, limits = limits)
+    } else if (!missing(breaks) ) {
+      p<-p+scale_x_continuous(breaks = breaks)
+    } else if (!missing(limits)) {
+      p<-p+scale_x_continuous(limits = limits)
+    }
+    if (missing(riblinecol)) {
+      p<-p+geom_line(data=pre0,aes(x,yhat),linetype=linetype,linewidth=linesize,alpha = linealpha,colour=linecol)+
         geom_ribbon(data=pre0,aes(ymin = lower, ymax = upper),alpha = ribalpha,fill=ribcol)
     } else {
       riblinecol<-riblinecol
-      p<-ggplot(pre0,aes(x=x))+
-        geom_histogram(aes(x=x,y =rescale(after_stat(density),histlimit)),
-                       binwidth = histbinwidth,fill=histcol,colour="black",alpha=histalpha)+
-        geom_line(data=pre0,aes(x,yhat),linetype=linetype,linewidth=linesize,alpha = linealpha,colour=ribcol)+
+      p<-p+geom_line(data=pre0,aes(x,yhat),linetype=linetype,linewidth=linesize,alpha = linealpha,colour=ribcol)+
         geom_ribbon(data=pre0,aes(ymin = lower, ymax = upper),
                     alpha = ribalpha,fill=ribcol,col=riblinecol)
     }
     p<-p+theme_bw()+
-      theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.text.x = element_text(family = fontfamily,size = axis.text.size),
+            axis.text.y = element_text(family = fontfamily,size = axis.text.size),
+            axis.title.x = element_text(family = fontfamily,size = fontsize),
+            axis.title.y = element_text(family = fontfamily,size = fontsize),
+            text = element_text(family = fontfamily)
+      )+
       xlab(xlab)+
       ylab(ylab)+
       labs(title=title)
@@ -257,7 +320,7 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     py<-round(py)
     #px<-max(x)*0.3
     #py<-max(pre0$upper)*0.95
-    p<-p+cowplot::draw_label(text, size = fontsize,
+    p<-p+draw_label(text, size = fontsize,
                     fontfamily = fontfamily, x = px, y = py, hjust = 0,
                     vjust = 1)
   }

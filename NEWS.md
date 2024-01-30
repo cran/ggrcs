@@ -1,3 +1,6 @@
+# ggrcs 0.3.8
+# ggrcs 0.3.8 Added font and X-axis truncation functionality.
+
 # ggrcs 0.3.5
 # ggrcs 0.3.5 Added custom style color scheme.
 

@@ -59,7 +59,7 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
                 leftaxislimit=NULL,lift=TRUE,P.Nonlinear=TRUE,liftname=NULL,riblinecol=NULL,linecol=NULL,
                 title=NULL,px=NULL,py=NULL,two.group.label=NULL,histalpha=NULL,linealpha=NULL,
                 bordercol=NULL,twotag.name=NULL,dec=NULL,fontsize=15,axis.text.size=15,fontfamily="serif",colset=NULL,
-                breaks=NULL,pdensity=FALSE,limits=NULL,x.breaks=NULL,x.moiety=NULL,...){
+                breaks=NULL,pdensity=FALSE,limits=NULL,x.breaks=NULL,x.moiety=NULL,histper=50,...){
   density<-NULL;yhat<-NULL;lower<-NULL;upper<-NULL
   if (missing(data)) {stop("data is miss.")}
   if (missing(fit)) {stop("fit is miss.")}
@@ -98,6 +98,15 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     d<-density(x)
     dmin<-as.numeric(min(d[["y"]]))##density
     dmax<-as.numeric(max(d[["y"]]))##density
+    dxmin<-as.numeric(min(d[["x"]]))##density
+    dxmax<-as.numeric(max(d[["x"]]))##density
+    if (is.null(histbinwidth)) {
+      histw<-(dxmax-dxmin)/histper
+    } else {histw<-histbinwidth}
+    d1<-density(x,bw=histw)
+    dmin1<-as.numeric(min(d1[["y"]]))##density
+    dmax1<-as.numeric(max(d1[["y"]]))##density
+    leftaxislimit1<-c(dmin1,dmax1)
     yminlower<-as.numeric(min(pre0$lower))
     ymaxupper<-as.numeric(max(yhat1<-pre0$upper))
     if (missing(groupcol)) {
@@ -120,7 +129,7 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
       }}
     #####ggplot set
     if (missing(histlimit)) {histlimit<-c(yminlower,ymaxupper)} else {assign("histlimit",histlimit)}
-    if (missing(histbinwidth)) {histbinwidth<-0.8} else {assign("histbinwidth",histbinwidth)}
+    if (missing(histbinwidth)) {histbinwidth<-histw} else {assign("histbinwidth",histbinwidth)}
     if (missing(histcol)) {histcol<-"plum1"} else {assign("histcol",histcol)}
     if (missing(linetype)) {linetype<-1} else {assign("linetype",linetype)}
     if (missing(linesize)) {linesize<-1} else {assign("linesize",linesize)}
@@ -131,7 +140,7 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     if (missing(histalpha)) {histalpha<-0.5} else {assign("histalpha",histalpha)}
     if (missing(linealpha)) {linealpha<-0.7} else {assign("linealpha",linealpha)}
     if (missing(linecol)) {linecol<-ribcol} else {linecol<-linecol}
-    if (missing(leftaxislimit)) {leftaxislimit<-c(dmin,dmax)} else {assign("leftaxislimit",leftaxislimit)}
+    if (missing(leftaxislimit)) {leftaxislimit<-leftaxislimit1} else {assign("leftaxislimit",leftaxislimit)}
     if (missing(title)) {title<-"The relationship between the variable and the predicted probability"} else {assign("title",title)}
     if (!missing(groupcol)) {assign("groupcol",groupcol)}
     if (missing(twotag.name)) {twotag.name<-groupname} else {assign("twotag.name",twotag.name)}
@@ -139,13 +148,13 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     ######
     if (pdensity==FALSE) {
       p<-ggplot()+
-        geom_histogram(data=pre0,aes(x=x,y =rescale(after_stat(density),histlimit),fill=group,group=group),
+        geom_histogram(data=pre0,aes(x=x,y =abs(rescale(after_stat(density),histlimit)),fill=group,group=group),
                        binwidth = histbinwidth,color=bordercol,alpha = histalpha)+
         scale_fill_manual(values=groupcol,labels = twotag.name)
 
     } else {
       p<-ggplot()+
-        geom_density(data=pre0,aes(x=x,y =rescale(after_stat(density),histlimit),fill=group,group=group),
+        geom_density(data=pre0,aes(x=x,y =abs(rescale(after_stat(density),histlimit)),fill=group,group=group),
                      color=bordercol,alpha = histalpha)+
         scale_fill_manual(values=groupcol,labels = twotag.name)
     }
@@ -206,6 +215,15 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     d<-density(x)
     dmin<-as.numeric(min(d[["y"]]))##density
     dmax<-as.numeric(max(d[["y"]]))##density
+    dxmin<-as.numeric(min(d[["x"]]))##density
+    dxmax<-as.numeric(max(d[["x"]]))##density
+    if (is.null(histbinwidth)) {
+      histw<-(dxmax-dxmin)/histper
+    } else {histw<-histbinwidth}
+    d1<-density(x,bw=histw)
+    dmin1<-as.numeric(min(d1[["y"]]))##density
+    dmax1<-as.numeric(max(d1[["y"]]))##density
+    leftaxislimit1<-c(dmin1,dmax1)
     yminlower<-as.numeric(min(pre0$lower))
     ymaxupper<-as.numeric(max(yhat1<-pre0$upper))
     if ((!missing(colset))) {
@@ -228,7 +246,7 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     }
     #####ggplot set
     if (missing(histlimit)) {histlimit<-c(yminlower,ymaxupper)} else {assign("histlimit",histlimit)}
-    if (missing(histbinwidth)) {histbinwidth<-0.8} else {assign("histbinwidth",histbinwidth)}
+    if (missing(histbinwidth)) {histbinwidth<-histw} else {assign("histbinwidth",histbinwidth)}
     if (missing(histcol)) {histcol<-"plum1"} else {assign("histcol",histcol)}
     if (missing(linetype)) {linetype<-1} else {assign("linetype",linetype)}
     if (missing(linesize)) {linesize<-1} else {assign("linesize",linesize)}
@@ -239,12 +257,12 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     if (missing(histalpha)) {histalpha<-0.5} else {assign("histalpha",histalpha)}
     if (missing(linealpha)) {linealpha<-0.7} else {assign("linealpha",linealpha)}
     if (missing(linecol)) {linecol<-ribcol} else {linecol<-linecol}
-    if (missing(leftaxislimit)) {leftaxislimit<-c(dmin,dmax)} else {assign("leftaxislimit",leftaxislimit)}
+    if (missing(leftaxislimit)) {leftaxislimit<-leftaxislimit1} else {assign("leftaxislimit",leftaxislimit)}
     if (missing(title)) {title<-"The relationship between the variable and the predicted probability"} else {assign("title",title)}
     #############
     if (pdensity==FALSE) {
       p<-ggplot(pre0,aes(x=x))+
-        geom_histogram(aes(x=x,y =rescale(after_stat(density),histlimit)),
+        geom_histogram(aes(x=x,y =abs(rescale(after_stat(density), histlimit))),
                        binwidth = histbinwidth,fill=histcol,colour="black",alpha=histalpha)
     } else {
       p<-ggplot(pre0,aes(x=x))+

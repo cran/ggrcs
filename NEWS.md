@@ -1,3 +1,5 @@
+# ggrcs 0.4.0 Fix some issues.
+
 # ggrcs 0.3.8
 # ggrcs 0.3.8 Added font and X-axis truncation functionality.
 

@@ -69,12 +69,13 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
   fit <- fit;assign("fit", fit);
   if (is.null(dec)) {dec<-3} else {dec<-dec}
   an<-anova(fit)
+  an<-as.data.frame(an)
   if (any(class(fit)=="cph"|class(fit)=="lrm")==T) {
-    p.value <- an[2, 3]
-    p.overall <- an[1, 3]
+    p.value <- an[" Nonlinear", 3]
+    p.overall <- an[x, 3]
   } else {
-    p.value <- an[2, 5]
-    p.overall <- an[1, 5]
+    p.value <- an[" Nonlinear", 5]
+    p.overall <- an[x, 5]
   }
   p.value<-pvformat(p.value,dec)
   p.overall<-pvformat(p.overall,dec)

@@ -1,7 +1,7 @@
 Package: ggrcs
 Type: Package
 Title: Draw Histograms and Restricted Cubic Splines (RCS)
-Version: 0.4.0
+Version: 0.4.1
 Authors@R: person("Qiang", "LIU", email = "dege857@163.com",
                   role = c("aut", "cre"))
 Maintainer: Qiang LIU <dege857@163.com>
@@ -17,7 +17,7 @@ RoxygenNote: 7.2.1
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2024-06-29 02:16:34 UTC; liu
+Packaged: 2024-08-28 17:04:10 UTC; liu
 Author: Qiang LIU [aut, cre]
 Repository: CRAN
-Date/Publication: 2024-06-29 02:40:02 UTC
+Date/Publication: 2024-08-28 21:00:02 UTC

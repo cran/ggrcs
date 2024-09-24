@@ -333,7 +333,9 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
     }
     text<- ""
     text<- paste(p.overall, p.value, sep = "\n")
-    if (missing(px)) {px<-max(x)*0.3} else {assign("px",px)}
+    if (missing(px)) {
+      px<-(max(x)-min(x))*0.02+min(x)
+      } else {assign("px",px)}
     if (missing(py)) {py<-max(pre0$upper)*0.95} else {assign("py",py)}
     px<-round(px)
     py<-round(py)

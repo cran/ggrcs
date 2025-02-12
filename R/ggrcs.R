@@ -337,8 +337,8 @@ ggrcs<-function(data,fit,x,group=NULL,groupcol=NULL,histlimit=NULL,histbinwidth=
       px<-(max(x)-min(x))*0.02+min(x)
       } else {assign("px",px)}
     if (missing(py)) {py<-max(pre0$upper)*0.95} else {assign("py",py)}
-    px<-round(px)
-    py<-round(py)
+    #px<-round(px)
+    #py<-round(py)
     #px<-max(x)*0.3
     #py<-max(pre0$upper)*0.95
     p<-p+draw_label(text, size = fontsize,
